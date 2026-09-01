@@ -69,7 +69,11 @@ Where:
 * $\mathbf{Q}^{(k)}$ and $\mathbf{Q}^{(k-1)}$ represent the dense vector embeddings of the current and immediate past user queries.
 * $\gamma \in [0, 1)$ acts as a momentum friction parameter determining historical trajectory retention.
 
-The system computes an anticipated query vector $\mathbf{Q}_{\text{pred}} = \mathbf{Q}^{(k)} + \mathbf{M}_q^{(k)}$. The Kinetic Arbitrage Agent immediately extracts memory blocks aligned with $\mathbf{Q}_{\text{pred}}$, pre-loading contextual shells into high-speed memory cache before the subsequent user prompt is fully dispatched.
+The system computes an anticipated query vector: 
+
+$$ \mathbf{Q}_{\text{pred}} = \mathbf{Q}^{(k)} + \mathbf{M}_q^{(k)} $$
+
+The Kinetic Arbitrage Agent immediately extracts memory blocks aligned with $\mathbf{Q}_{\text{pred}}$, pre-loading contextual shells into high-speed memory cache before the subsequent user prompt is fully dispatched.
 
 ---
 

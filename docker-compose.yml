@@ -1,0 +1,48 @@
+services:
+  gemma4-vllm-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.vllm
+      args:
+        VLLM_VERSION: ${VLLM_VERSION:?Set VLLM_VERSION to a tested release}
+    container_name: gemma4-12b-vllm
+    restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      HF_HOME: /vllm-workspace/.cache/huggingface
+      HUGGING_FACE_HUB_TOKEN: ${HF_TOKEN:?Set HF_TOKEN in .env}
+      VLLM_MODEL_REVISION: ${VLLM_MODEL_REVISION:?Set a verified model revision}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - hf-cache:/vllm-workspace/.cache/huggingface
+    shm_size: 8gb
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - --model
+      - ${VLLM_MODEL_NAME:?Set VLLM_MODEL_NAME in .env}
+      - --revision
+      - ${VLLM_MODEL_REVISION}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --gpu-memory-utilization
+      - ${VLLM_GPU_MEMORY_UTILIZATION:-0.90}
+      - --enable-auto-tool-choice
+      - --reasoning-parser
+      - ${VLLM_REASONING_PARSER:?Set a parser supported by the pinned vLLM release}
+      - --tool-call-parser
+      - ${VLLM_TOOL_CALL_PARSER:?Set a parser supported by the pinned vLLM release}
+
+volumes:
+  hf-cache:

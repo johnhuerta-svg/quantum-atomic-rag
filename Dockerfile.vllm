@@ -1,0 +1,29 @@
+ARG VLLM_VERSION=0.10.2
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+
+ARG VLLM_VERSION
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/vllm-workspace/.cache/huggingface \
+    PATH=/home/vllmuser/.local/bin:$PATH
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3.10 python3-pip curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 vllmgroup \
+    && useradd --uid 10001 --gid 10001 --create-home --shell /bin/bash vllmuser \
+    && mkdir -p /vllm-workspace/.cache/huggingface \
+    && chown -R 10001:10001 /vllm-workspace
+
+WORKDIR /vllm-workspace
+USER 10001:10001
+
+RUN python3 -m pip install --no-cache-dir --user "vllm==${VLLM_VERSION}"
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=5 \
+    CMD curl --fail http://127.0.0.1:8000/health || exit 1
+
+ENTRYPOINT ["python3", "-m", "vllm.entrypoints.openai.api_server"]

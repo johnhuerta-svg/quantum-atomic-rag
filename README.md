@@ -1,5 +1,58 @@
 # quantum-atomic-rag
 Quantum- and physics-inspired RAG architecture featuring self-optimizing memory dynamics for advanced AI context retrieval.
+
+## Implementation
+
+The repository includes a Python 3.11+ multi-agent orchestration package under `src/quantum_atomic_rag`. The model client targets an OpenAI-compatible vLLM endpoint and enforces Pydantic response schemas when the selected vLLM release supports JSON Schema decoding.
+
+### Local development
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/pytest
+```
+
+Start the browser dashboard against local Ollama:
+
+```bash
+VLLM_ENDPOINT_URL=http://127.0.0.1:11434/v1 \
+VLLM_MODEL_NAME=gemma4-agent:latest \
+.venv/bin/uvicorn quantum_atomic_rag.api:app --host 127.0.0.1 --port 8002 --reload
+```
+
+Open http://127.0.0.1:8002 in a browser. The dashboard submits validated payloads to the staged CQI, predictive, strategy, and marketing workflow and displays each agent's status and output.
+
+When using VS Code's embedded browser, its file sandbox may reject PDFs dragged from Downloads or another untrusted folder with `Forbidden. File does not reside within a trusted folder.` Open the dashboard in Safari/Chrome for unrestricted local file selection, or copy the source into this workspace first. This restriction happens in the browser before the upload reaches the application.
+
+The test suite uses a fake model client and HTTP transports, so a GPU is not required for local development.
+
+### macOS without an NVIDIA GPU
+
+The Docker vLLM service cannot use Apple Silicon or macOS graphics hardware. Continue local development with the mock-backed test suite:
+
+```bash
+.venv/bin/pytest -q
+```
+
+For a real model, use a Linux machine or hosted GPU running the Compose service, then set `VLLM_ENDPOINT_URL` in the local environment to that server's OpenAI-compatible `/v1` endpoint. The Python schemas, retry behavior, tier routing, and structured-response handling can all be validated locally before connecting to that endpoint.
+
+Ollama is also supported as a local OpenAI-compatible backend. With Ollama running, use `VLLM_ENDPOINT_URL=http://127.0.0.1:11434/v1`, `VLLM_MODEL_NAME=gemma4-agent:latest`, and start the application from the host. The included `.devcontainer/devcontainer.json` uses `host.docker.internal` so a development container can reach Ollama running on macOS.
+
+Do not replace the target model with an unverified local model and assume equivalent behavior. A local Apple-compatible backend is useful for interface experiments, but it does not validate Gemma 4 parser, reasoning, or vLLM compatibility.
+
+### vLLM deployment
+
+1. Copy `.env.example` to `.env`.
+2. Set `HF_TOKEN`, `VLLM_VERSION`, `VLLM_MODEL_NAME`, and a verified `VLLM_MODEL_REVISION`.
+3. Verify `VLLM_REASONING_PARSER` and `VLLM_TOOL_CALL_PARSER` against the selected vLLM release.
+4. Confirm NVIDIA Container Toolkit is installed and the Hugging Face model terms have been accepted.
+5. Start the engine with `docker compose up --build`.
+
+The service binds to `127.0.0.1:8000`, runs as a non-root user, and stores the Hugging Face cache in the named `hf-cache` volume. Parser names and model revisions are required configuration because they are release- and model-specific. `--enable-auto-tool-choice` is included because vLLM requires it when automatic tool parsing is enabled. Gemma 4 thinking is disabled by default; set `ENABLE_THINKING=true` in the Python environment when reasoning output is desired, which sends `chat_template_kwargs.enable_thinking=true` per request.
+
+The current implementation provides schemas, bounded input validation, retrying model transport, tier-aware orchestration, and local tests. The documented graph storage and retrieval engine remain future implementation areas.
+
 # Quantum Atomic RAG: A Physics- and Quantum-Inspired Self-Optimizing Architecture for Advanced AI Memory
 
 Author: John Gustavo Alonzo Huerta Paniagua  

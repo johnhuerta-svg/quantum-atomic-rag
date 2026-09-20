@@ -2,6 +2,10 @@
 __pycache__/
 *.py[codz]
 *$py.class
+.venv/
+.env
+data/*.sqlite3
+.DS_Store
 
 # C extensions
 *.so

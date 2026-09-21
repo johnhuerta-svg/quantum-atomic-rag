@@ -81,6 +81,12 @@ class MarketingAgentOutput(StrictModel):
     client_retention_report_copy: str = Field(min_length=1, max_length=8_000)
 
 
+class HarmonizerOutput(StrictModel):
+    answer: str = Field(min_length=1, max_length=8_000)
+    confidence: float = Field(ge=0.0, le=1.0)
+    cited_node_ids: list[str] = Field(default_factory=list, max_length=50)
+
+
 class PayloadMeta(StrictModel):
     transaction_id: str = Field(min_length=1, max_length=256)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))

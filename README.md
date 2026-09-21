@@ -37,7 +37,7 @@ The Docker vLLM service cannot use Apple Silicon or macOS graphics hardware. Con
 
 For a real model, use a Linux machine or hosted GPU running the Compose service, then set `VLLM_ENDPOINT_URL` in the local environment to that server's OpenAI-compatible `/v1` endpoint. The Python schemas, retry behavior, tier routing, and structured-response handling can all be validated locally before connecting to that endpoint.
 
-Ollama is also supported as a local OpenAI-compatible backend. With Ollama running, use `VLLM_ENDPOINT_URL=http://127.0.0.1:11434/v1`, `VLLM_MODEL_NAME=gemma4-agent:latest`, and start the application from the host. The included `.devcontainer/devcontainer.json` uses `host.docker.internal` so a development container can reach Ollama running on macOS.
+Ollama is also supported as a local OpenAI-compatible backend. With Ollama running, use `VLLM_ENDPOINT_URL=http://127.0.0.1:11434/v1`, `VLLM_MODEL_NAME=gemma4-agent:latest`, and `EMBEDDING_MODEL_NAME=nomic-embed-text:latest`, then start the application from the host. New sources are embedded through Ollama and ranked semantically; older atoms without stored vectors remain searchable through lexical fallback. The included `.devcontainer/devcontainer.json` uses `host.docker.internal` so a development container can reach Ollama running on macOS.
 
 Do not replace the target model with an unverified local model and assume equivalent behavior. A local Apple-compatible backend is useful for interface experiments, but it does not validate Gemma 4 parser, reasoning, or vLLM compatibility.
 

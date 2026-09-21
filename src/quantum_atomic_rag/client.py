@@ -98,6 +98,25 @@ class Gemma4VLLMClient:
             self._error_message("model endpoint unavailable after retries", transaction_id, last_error)
         ) from last_error
 
+    async def generate_embedding(self, text: str) -> list[float]:
+        """Generate a local semantic embedding through the compatible API."""
+        await self.start()
+        if self._client is None:
+            raise ModelTransportError("HTTP client is not started")
+        try:
+            response = await self._client.post(
+                f"{str(self.settings.vllm_endpoint_url).rstrip('/')}/embeddings",
+                json={"model": self.settings.embedding_model_name, "input": text},
+            )
+            response.raise_for_status()
+            data = response.json()
+            embedding = data["data"][0]["embedding"]
+            if not isinstance(embedding, list) or not embedding:
+                raise ModelResponseError("embedding response was empty")
+            return [float(value) for value in embedding]
+        except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
+            raise ModelTransportError("embedding endpoint returned an invalid response") from error
+
     async def _post(self, payload: Mapping[str, Any]) -> httpx.Response:
         if self._client is None:
             raise ModelTransportError("HTTP client is not started")

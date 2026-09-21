@@ -3,20 +3,223 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quantum Atomic RAG</title>
 <style>
-:root{--bg:#101719;--panel:#172326;--panel2:#1d2b2d;--ink:#edf3ed;--muted:#93a6a2;--line:#304345;--gold:#e6ad54;--teal:#58c4b2;--rust:#ea765c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 20%,#1d3535 0,#101719 42%);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1400px;margin:auto;padding:28px 30px 60px}.top{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:18px}.kicker{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}.top h1{font:500 48px/1 Georgia,serif;margin:8px 0 0}.top p{max-width:380px;color:var(--muted);line-height:1.5;margin:0}.health{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;margin-top:12px}.led{width:8px;height:8px;background:var(--teal);border-radius:50%}.nav{display:flex;gap:8px;margin-bottom:18px}.nav button{background:transparent;color:var(--muted);border:1px solid var(--line);padding:10px 14px;border-radius:2px;cursor:pointer}.nav button.active{background:var(--gold);color:#172326;border-color:var(--gold);font-weight:700}.workspace{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:18px}.panel{background:rgba(23,35,38,.92);border:1px solid var(--line);padding:20px}.panel h2{font:500 23px Georgia,serif;margin:0 0 7px}.sub{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 18px}label{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:16px 0 7px}textarea,input{width:100%;background:#10191b;border:1px solid var(--line);color:var(--ink);padding:11px;border-radius:2px;font:13px/1.45 Arial,sans-serif}textarea{height:145px;resize:vertical}.drop{border:1px dashed #66807a;background:#122021;padding:20px 14px;text-align:center;color:var(--muted);font-size:12px;cursor:pointer}.drop.drag{border-color:var(--gold);background:#26352e;color:var(--ink)}.drop strong{display:block;color:var(--ink);font:18px Georgia,serif;margin-bottom:7px}.file-name{color:var(--teal);margin-top:8px;word-break:break-word}.primary{width:100%;background:var(--gold);border:0;color:#172326;padding:13px;margin-top:14px;font-weight:700;cursor:pointer;border-radius:2px}.primary:disabled{opacity:.55;cursor:wait}.right{min-width:0}.question{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:16px}.question h2{font:500 23px Georgia,serif;margin:0 0 7px}.question-row{display:flex;gap:10px;align-items:end}.question-row textarea{height:88px;flex:1}.question-row button{width:auto;min-width:130px;height:43px}.hint{font-size:11px;color:var(--muted);margin-top:7px}.trace{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.agent{border:1px solid var(--line);padding:12px;background:var(--panel2)}.agent strong{display:block;text-transform:uppercase;font-size:10px;color:var(--muted);letter-spacing:.7px}.agent span{display:block;color:var(--teal);font-size:12px;margin-top:8px}.result{background:#0b1112;border:1px solid var(--line);padding:16px;min-height:220px;white-space:pre-wrap;overflow:auto;color:#cce8dd;font:12px/1.55 monospace}.notice{color:var(--gold);font-size:12px;min-height:18px;margin:10px 0}.memory{margin-top:18px}.graph{position:relative;min-height:430px;background:#0b1112;border:1px solid var(--line);overflow:hidden}.graph svg{width:100%;height:430px}.graph circle{cursor:pointer}.graph circle:hover{stroke:#fff;stroke-width:2}.graph text{fill:var(--muted);font:11px Arial}.legend{position:absolute;left:16px;bottom:14px;color:var(--muted);font-size:11px}.hidden{display:none!important}@media(max-width:850px){main{padding:20px 14px}.top{display:block}.top p{margin-top:16px}.workspace{grid-template-columns:1fr}.question-row{display:block}.question-row button{width:100%;margin-top:8px}.trace{grid-template-columns:repeat(2,1fr)}}
-</style><style>.graph{touch-action:none}.graph svg{cursor:grab}.graph svg.dragging{cursor:grabbing}.graph-tools{position:absolute;right:12px;top:12px;display:flex;gap:6px}.graph-tools button{border:1px solid var(--line);background:#172326;color:var(--ink);padding:8px 10px;border-radius:2px;cursor:pointer}.graph-tools button:hover{border-color:var(--gold);color:var(--gold)}</style></head>
+:root{--bg:#101719;--panel:#172326;--panel2:#1d2b2d;--ink:#edf3ed;--muted:#93a6a2;--line:#304345;--gold:#e6ad54;--teal:#58c4b2;--rust:#ea765c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 20%,#1d3535 0,#101719 42%);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1400px;margin:auto;padding:28px 30px 60px}.top{display:flex;justify-content:space-between;align-items:end;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:18px}.kicker{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}.top h1{font:500 48px/1 Georgia,serif;margin:8px 0 0}.top p{max-width:380px;color:var(--muted);line-height:1.5;margin:0}.health{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;margin-top:12px}.led{width:8px;height:8px;background:var(--teal);border-radius:50%}.nav{display:flex;gap:8px;margin-bottom:18px}.nav button{background:transparent;color:var(--muted);border:1px solid var(--line);padding:10px 14px;border-radius:2px;cursor:pointer}.nav button.active{background:var(--gold);color:#172326;border-color:var(--gold);font-weight:700}.workspace{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:18px}.panel{background:rgba(23,35,38,.92);border:1px solid var(--line);padding:20px}.panel h2{font:500 23px Georgia,serif;margin:0 0 7px}.sub{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 18px}label{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:16px 0 7px}textarea,input{width:100%;background:#10191b;border:1px solid var(--line);color:var(--ink);padding:11px;border-radius:2px;font:13px/1.45 Arial,sans-serif}textarea{height:145px;resize:vertical}.drop{border:1px dashed #66807a;background:#122021;padding:20px 14px;text-align:center;color:var(--muted);font-size:12px;cursor:pointer}.drop.drag{border-color:var(--gold);background:#26352e;color:var(--ink)}.drop strong{display:block;color:var(--ink);font:18px Georgia,serif;margin-bottom:7px}.file-name{color:var(--teal);margin-top:8px;word-break:break-word}.primary{width:100%;background:var(--gold);border:0;color:#172326;padding:13px;margin-top:14px;font-weight:700;cursor:pointer;border-radius:2px}.primary:disabled{opacity:.55;cursor:wait}.right{min-width:0}.question{border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:16px}.question h2{font:500 23px Georgia,serif;margin:0 0 7px}.question-row{display:flex;gap:10px;align-items:end}.question-row textarea{height:88px;flex:1}.question-row button{width:auto;min-width:130px;height:43px}.hint{font-size:11px;color:var(--muted);margin-top:7px}.trace{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.agent{border:1px solid var(--line);padding:12px;background:var(--panel2)}.agent strong{display:block;text-transform:uppercase;font-size:10px;color:var(--muted);letter-spacing:.7px}.agent span{display:block;color:var(--teal);font-size:12px;margin-top:8px}.result{background:#0b1112;border:1px solid var(--line);padding:16px;min-height:220px;white-space:pre-wrap;overflow:auto;color:#cce8dd;font:12px/1.55 monospace}.notice{color:var(--gold);font-size:12px;min-height:18px;margin:10px 0}.memory{margin-top:18px}.graph{position:relative;height:520px;min-height:520px;background:#0b1112;border:1px solid var(--line);overflow:hidden;touch-action:none;cursor:grab}.graph.dragging{cursor:grabbing}#graph3d{position:absolute;inset:0}.graph canvas{display:block;width:100%!important;height:100%!important}.legend{position:absolute;left:16px;bottom:14px;color:var(--muted);font-size:11px;pointer-events:none}.hidden{display:none!important}@media(max-width:850px){main{padding:20px 14px}.top{display:block}.top p{margin-top:16px}.workspace{grid-template-columns:1fr}.question-row{display:block}.question-row button{width:100%;margin-top:8px}.trace{grid-template-columns:repeat(2,1fr)}}
+</style><style>.graph-tools{position:absolute;right:12px;top:12px;display:flex;gap:6px;z-index:2}.graph-tools button{border:1px solid var(--line);background:#172326;color:var(--ink);padding:8px 10px;border-radius:2px;cursor:pointer}.graph-tools button:hover{border-color:var(--gold);color:var(--gold)}.atom-label{color:var(--ink);font:10px Arial,sans-serif;background:rgba(11,17,18,.78);border:1px solid var(--line);padding:1px 5px;border-radius:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;pointer-events:none;transform:translateY(-14px)}.atom-label.nucleus-label{color:var(--rust);border-color:var(--rust);font-weight:700;font-size:11px;max-width:160px}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head>
 <body><main>
 <header class="top"><div><div class="kicker">Protected quantum container · persistent memory</div><h1>Quantum Atomic RAG</h1></div><div><p>Add context and ask questions in the same memory workspace. Every retrieval reinforces the atoms it touches.</p><div class="health"><i class="led"></i><span id="health">Connecting to local model...</span></div></div></header>
 <nav class="nav"><button class="active" data-view="workspace">Knowledge workspace</button><button data-view="memory">Memory database render</button></nav>
 <section id="workspace" class="workspace"><aside class="panel"><h2>Add knowledge</h2><p class="sub">Paste a fragment or drop a source file into the atomic memory.</p><form id="knowledge-form"><label for="source">Source label</label><input id="source" value="manual note"><label for="knowledge">Knowledge fragment</label><textarea id="knowledge">Quantum Atomic RAG organizes durable context into nuclei and orbiting shells. High-utility knowledge is reinforced during retrieval while stale context drifts outward.</textarea><div id="drop" class="drop" tabindex="0"><strong>Drop a source here</strong><span>PDF, TXT, Markdown, JSON, CSV, images, audio, or video</span><div id="file-name" class="file-name"></div><input id="file" type="file" hidden accept=".pdf,.txt,.md,.markdown,.json,.csv,.yaml,.yml,.xml,.html,.png,.jpg,.jpeg,.webp,.gif,.mp3,.wav,.m4a,.mp4,.mov"></div><button class="primary" id="store" type="submit">Store knowledge</button></form><div class="notice" id="knowledge-notice"></div></aside><div class="right"><section class="panel question"><h2>Ask questions</h2><p class="sub">Search the living memory field. Press Enter to submit; use Shift+Enter for a new line.</p><form id="question-form"><div class="question-row"><textarea id="question" placeholder="What knowledge is relevant to this question?" aria-label="Question"></textarea><button class="primary" id="ask" type="submit">Ask swarm</button></div><div class="hint">Enter submits · Shift+Enter adds a line</div></form></section><section class="panel"><div class="trace" id="trace"><div class="agent"><strong>Linker</strong><span>ready</span></div><div class="agent"><strong>Pruner</strong><span>ready</span></div><div class="agent"><strong>Momentum</strong><span>ready</span></div><div class="agent"><strong>Harmonizer</strong><span>ready</span></div></div><div class="result" id="result">Your ingestion receipt or retrieval trace will appear here.</div></section></div></section>
-<section id="memory" class="panel memory hidden"><h2>Atomic memory field</h2><p class="sub">The nucleus anchors the field while knowledge atoms orbit on persisted shells. Scroll to zoom; drag to rotate the structure.</p><div class="graph"><svg id="graph" viewBox="0 0 1000 430" preserveAspectRatio="xMidYMid meet"><g id="graph-scene"></g></svg><div class="graph-tools"><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-reset" type="button">Reset</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button></div><div class="legend">rust · nucleus &nbsp; teal · high momentum &nbsp; dim · low utility</div></div><div class="result" id="node-detail" style="margin-top:12px">Select an atom to inspect its content.</div></section>
-</main><script>
+<section id="memory" class="panel memory hidden"><h2>Atomic memory field</h2><p class="sub">The nucleus anchors the field while knowledge atoms orbit on persisted shells in true 3D. Drag to orbit, scroll or pinch to zoom, right-click (or two-finger) drag to pan.</p><div class="graph"><div id="graph3d"></div><div class="graph-tools"><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-reset" type="button">Reset</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button></div><div class="legend">rust · nucleus &nbsp; teal · high momentum &nbsp; dim · low utility</div></div><div class="result" id="node-detail" style="margin-top:12px">Select an atom to inspect its content.</div></section>
+</main>
+<script>
 const $=s=>document.querySelector(s),workspace=$('#workspace'),memory=$('#memory'),result=$('#result'),notice=$('#knowledge-notice'),file=$('#file'),drop=$('#drop'),fileName=$('#file-name');let selectedFile=null;
 async function health(){try{const r=await fetch('/api/health'),d=await r.json();$('#health').textContent=d.model+' · connected'}catch(e){$('#health').textContent='API unavailable'}}
-function showFile(list){if(!list||!list.length)return;selectedFile=list[0];fileName.textContent=selectedFile.name;$('#knowledge').value='';$('#source').value=selectedFile.name}file.onchange=()=>showFile(file.files);drop.onclick=()=>file.click();drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};drop.ondragleave=()=>drop.classList.remove('drag');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');showFile(e.dataTransfer.files)};
+function showFile(list){if(!list||!list.length)return;selectedFile=list[0];fileName.textContent=selectedFile.name;$('#knowledge').value='';$('#source').value=selectedFile.name}
+file.onchange=()=>showFile(file.files);drop.onclick=()=>file.click();drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};drop.ondragleave=()=>drop.classList.remove('drag');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');showFile(e.dataTransfer.files)};
 $('#knowledge-form').onsubmit=async e=>{e.preventDefault();const button=$('#store');button.disabled=true;button.textContent='Storing...';try{let response;if(selectedFile){const form=new FormData();form.append('file',selectedFile);response=await fetch('/api/knowledge/upload',{method:'POST',body:form})}else{response=await fetch('/api/knowledge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:$('#knowledge').value,source:$('#source').value})})}const data=await response.json();if(!response.ok)throw Error(data.detail||'Could not store knowledge');result.textContent=JSON.stringify(data,null,2);notice.textContent=`Stored ${data.filename||data.node.source}; ${data.total_nodes} atom(s) in memory.`;file.value='';selectedFile=null;fileName.textContent=''}catch(err){notice.textContent=err.message}finally{button.disabled=false;button.textContent='Store knowledge'}};
-$('#question').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#question-form').requestSubmit()}};$('#question-form').onsubmit=async e=>{e.preventDefault();const button=$('#ask');const query=$('#question').value.trim();if(!query)return;button.disabled=true;button.textContent='Searching...';try{const r=await fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});const d=await r.json();if(!r.ok)throw Error(d.detail||'Could not query memory');result.textContent=JSON.stringify(d,null,2);['linked','pruned','biased','synthesized'].forEach((x,i)=>document.querySelectorAll('.agent span')[i].textContent=x)}catch(err){result.textContent=err.message}finally{button.disabled=false;button.textContent='Ask swarm'}};
-async function loadGraph(){const svg=$('#graph'),detail=$('#node-detail');try{const d=await (await fetch('/api/memory/graph')).json();svg.innerHTML='';const cx=500,cy=215,nucleus=d.nodes.find(n=>n.is_nucleus),positions=new Map();if(!d.nodes.length){detail.textContent='No atoms are stored yet.';return}d.nodes.forEach((n,i)=>{if(n.is_nucleus){positions.set(n.node_id,{x:cx,y:cy});return}const siblings=d.nodes.filter(x=>!x.is_nucleus&&x.orbital_shell===n.orbital_shell),index=siblings.findIndex(x=>x.node_id===n.node_id),angle=(index/Math.max(siblings.length,1))*Math.PI*2-.8,radius=65+(n.orbital_shell-1)*58;positions.set(n.node_id,{x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius*.68})});const shells=[...new Set(d.nodes.filter(n=>!n.is_nucleus).map(n=>n.orbital_shell))];shells.forEach(shell=>{const ring=document.createElementNS('http://www.w3.org/2000/svg','circle'),radius=65+(shell-1)*58;ring.setAttribute('cx',cx);ring.setAttribute('cy',cy);ring.setAttribute('r',radius);ring.setAttribute('fill','none');ring.setAttribute('stroke','#304345');ring.setAttribute('stroke-dasharray','2 8');svg.appendChild(ring)});d.links.forEach(link=>{const start=positions.get(link.source_id),end=positions.get(link.target_id);if(!start||!end)return;const line=document.createElementNS('http://www.w3.org/2000/svg','line');line.setAttribute('x1',start.x);line.setAttribute('y1',start.y);line.setAttribute('x2',end.x);line.setAttribute('y2',end.y);line.setAttribute('stroke','#58c4b2');line.setAttribute('stroke-opacity',Math.max(.15,link.strength));line.setAttribute('stroke-width',1+link.strength*3);svg.appendChild(line)});d.nodes.forEach(n=>{const point=positions.get(n.node_id),circle=document.createElementNS('http://www.w3.org/2000/svg','circle'),radius=n.is_nucleus?25:7+n.utility*18,red=Math.round(234-(n.momentum*90)),green=Math.round(118+(n.momentum*80));circle.setAttribute('cx',point.x);circle.setAttribute('cy',point.y);circle.setAttribute('r',radius);circle.setAttribute('fill',n.is_nucleus?'#ea765c':`rgb(${red},${green},${n.momentum>.4?170:84})`);circle.setAttribute('opacity',.45+n.utility*.55);circle.onclick=()=>detail.textContent=`${n.is_nucleus?'NUCLEUS':'ATOM'}\n\nSource: ${n.source}\nShell: ${n.orbital_shell}\nUtility: ${n.utility.toFixed(2)}\nMomentum: ${n.momentum.toFixed(2)}\nPotential energy: ${n.potential_energy.toFixed(2)}\n\n${n.content}`;svg.appendChild(circle)});if(!nucleus)detail.textContent='No nucleus record is stored.'}catch(e){detail.textContent='Memory graph unavailable.'}}
-function prepareGraphControls(){const svg=$('#graph'),oldScene=$('#graph-scene');if(oldScene)oldScene.remove();const scene=document.createElementNS('http://www.w3.org/2000/svg','g');scene.id='graph-scene';[...svg.children].forEach(child=>scene.appendChild(child));svg.appendChild(scene);let scale=1,rotation=0,dragging=false,lastX=0;const apply=()=>scene.setAttribute('transform',`translate(500 215) rotate(${rotation}) scale(${scale}) translate(-500 -215)`);const setScale=next=>{scale=Math.max(.55,Math.min(2.4,next));apply()};$('#zoom-in').onclick=()=>setScale(scale+.2);$('#zoom-out').onclick=()=>setScale(scale-.2);$('#zoom-reset').onclick=()=>{scale=1;rotation=0;apply()};svg.onwheel=e=>{e.preventDefault();setScale(scale+(e.deltaY<0?.12:-.12))};svg.onpointerdown=e=>{dragging=true;lastX=e.clientX;svg.classList.add('dragging');svg.setPointerCapture(e.pointerId)};svg.onpointermove=e=>{if(!dragging)return;rotation+=(e.clientX-lastX)*.35;lastX=e.clientX;apply()};svg.onpointerup=svg.onpointercancel=()=>{dragging=false;svg.classList.remove('dragging')};apply()}
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');const graph=b.dataset.view==='memory';workspace.classList.toggle('hidden',graph);memory.classList.toggle('hidden',!graph);if(graph){loadGraph();setTimeout(prepareGraphControls,50)}});health();
-</script></body></html>
+$('#question').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#question-form').requestSubmit()}};
+$('#question-form').onsubmit=async e=>{e.preventDefault();const button=$('#ask');const query=$('#question').value.trim();if(!query)return;button.disabled=true;button.textContent='Searching...';try{const r=await fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});const d=await r.json();if(!r.ok)throw Error(d.detail||'Could not query memory');result.textContent=JSON.stringify(d,null,2);['linked','pruned','biased','synthesized'].forEach((x,i)=>document.querySelectorAll('.agent span')[i].textContent=x)}catch(err){result.textContent=err.message}finally{button.disabled=false;button.textContent='Ask swarm'}};
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');const graph=b.dataset.view==='memory';workspace.classList.toggle('hidden',graph);memory.classList.toggle('hidden',!graph);if(graph){window.loadGraph3D&&window.loadGraph3D()}});
+health();
+function renderMetrics(metrics){let panel=$('#metrics');if(!panel){panel=document.createElement('div');panel.id='metrics';panel.className='trace';$('#memory').insertBefore(panel,$('#memory .graph'))}panel.innerHTML=Object.entries(metrics||{}).map(([key,value])=>`<div class="agent"><strong>${key.replaceAll('_',' ')}</strong><span>${Array.isArray(value)?value.join(', ') : value}</span></div>`).join('')}
+fetch('/api/memory/graph').then(response=>response.json()).then(data=>renderMetrics(data.metrics));
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+const $=s=>document.querySelector(s);
+let scene,camera,renderer,labelRenderer,controls,raycaster,pointer,nodeGroup,linkGroup,shellGroup,nodeMeshes=[],shellRigs=[],container,resizeObserver,hoveredMesh=null;
+function titleFor(n){const clean=(n.content||'').replace(/\s+/g,' ').trim();const words=clean.split(' ').slice(0,4).join(' ');const short=words.length<clean.length?words+'…':words;return n.is_nucleus?`⚛ ${short||n.source}`:short||n.source}
+
+function initScene(){
+  container=$('#graph3d');
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0b1112);
+  camera=new THREE.PerspectiveCamera(50,container.clientWidth/Math.max(container.clientHeight,1),0.1,3000);
+  camera.position.set(0,70,230);
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.setSize(container.clientWidth,container.clientHeight);
+  container.appendChild(renderer.domElement);
+  labelRenderer=new CSS2DRenderer();
+  labelRenderer.setSize(container.clientWidth,container.clientHeight);
+  labelRenderer.domElement.style.position='absolute';
+  labelRenderer.domElement.style.top='0';
+  labelRenderer.domElement.style.left='0';
+  labelRenderer.domElement.style.pointerEvents='none';
+  container.appendChild(labelRenderer.domElement);
+  scene.add(new THREE.AmbientLight(0xffffff,0.75));
+  const key=new THREE.PointLight(0xffffff,1.1);key.position.set(120,160,180);scene.add(key);
+  const fill=new THREE.PointLight(0x58c4b2,0.35);fill.position.set(-140,-80,-120);scene.add(fill);
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;
+  controls.dampingFactor=0.08;
+  controls.rotateSpeed=0.6;
+  controls.zoomSpeed=0.9;
+  controls.panSpeed=0.6;
+  controls.minDistance=30;
+  controls.maxDistance=700;
+  controls.target.set(0,0,0);
+  raycaster=new THREE.Raycaster();
+  pointer=new THREE.Vector2();
+  shellGroup=new THREE.Group();scene.add(shellGroup);
+  linkGroup=new THREE.Group();scene.add(linkGroup);
+  nodeGroup=new THREE.Group();scene.add(nodeGroup);
+  let downPos=null,downTime=0;
+  const graphEl=container.parentElement;
+  renderer.domElement.addEventListener('pointerdown',e=>{downPos={x:e.clientX,y:e.clientY};downTime=Date.now();graphEl.classList.add('dragging')});
+  renderer.domElement.addEventListener('pointerup',e=>{
+    graphEl.classList.remove('dragging');
+    if(!downPos)return;
+    const dx=e.clientX-downPos.x,dy=e.clientY-downPos.y;
+    downPos=null;
+    if(Math.hypot(dx,dy)>4||Date.now()-downTime>500)return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
+    pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(pointer,camera);
+    const hits=raycaster.intersectObjects(nodeMeshes);
+    if(hits.length)showDetail(hits[0].object.userData.node);
+  });
+  renderer.domElement.addEventListener('pointermove',e=>{
+    const rect=renderer.domElement.getBoundingClientRect();
+    pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
+    pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(pointer,camera);
+    const hits=raycaster.intersectObjects(nodeMeshes);
+    const nextHover=hits.length?hits[0].object:null;
+    if(nextHover===hoveredMesh)return;
+    if(hoveredMesh&&hoveredMesh.userData.label)hoveredMesh.userData.label.visible=false;
+    hoveredMesh=nextHover;
+    if(hoveredMesh&&hoveredMesh.userData.label)hoveredMesh.userData.label.visible=true;
+  });
+  renderer.domElement.addEventListener('pointerleave',()=>{
+    if(hoveredMesh&&hoveredMesh.userData.label)hoveredMesh.userData.label.visible=false;
+    hoveredMesh=null;
+  });
+  resizeObserver=new ResizeObserver(onResize);
+  resizeObserver.observe(container);
+  $('#zoom-in').onclick=()=>zoomBy(0.8);
+  $('#zoom-out').onclick=()=>zoomBy(1.25);
+  $('#zoom-reset').onclick=()=>{camera.position.set(0,70,230);controls.target.set(0,0,0);controls.update()};
+  animate();
+}
+
+function zoomBy(factor){
+  const dir=camera.position.clone().sub(controls.target);
+  const len=THREE.MathUtils.clamp(dir.length()*factor,controls.minDistance,controls.maxDistance);
+  dir.setLength(len);
+  camera.position.copy(controls.target).add(dir);
+}
+
+function onResize(){
+  if(!container)return;
+  const w=container.clientWidth,h=container.clientHeight;
+  if(!w||!h)return;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+  labelRenderer&&labelRenderer.setSize(w,h);
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  shellRigs.forEach(rig=>{rig.group.rotation.y+=rig.speed});
+  renderer.render(scene,camera);
+  labelRenderer.render(scene,camera);
+}
+
+function showDetail(n){
+  $('#node-detail').textContent=`${n.is_nucleus?'NUCLEUS':'ATOM'}\n\nSource: ${n.source}\nShell: ${n.orbital_shell}\nUtility: ${n.utility.toFixed(2)}\nMomentum: ${n.momentum.toFixed(2)}\nPotential energy: ${n.potential_energy.toFixed(2)}\n\n${n.content}`;
+}
+
+function clearGroup(group){while(group.children.length){const child=group.children.pop();child.geometry&&child.geometry.dispose();child.material&&child.material.dispose()}}
+
+function makeLabel(n){
+  const div=document.createElement('div');
+  div.className=n.is_nucleus?'atom-label nucleus-label':'atom-label';
+  div.textContent=titleFor(n);
+  const label=new CSS2DObject(div);
+  label.visible=false;
+  return label;
+}
+
+async function loadGraph3D(){
+  const detail=$('#node-detail');
+  if(!scene)initScene();
+  onResize();
+  try{
+    const d=await (await fetch('/api/memory/graph')).json();
+    clearGroup(nodeGroup);clearGroup(linkGroup);clearGroup(shellGroup);nodeMeshes=[];shellRigs=[];hoveredMesh=null;
+    if(!d.nodes.length){detail.textContent='No atoms are stored yet.';return}
+    const positions=new Map();
+    const assignments=new Map();
+    const nucleus=d.nodes.find(n=>n.is_nucleus);
+    if(nucleus){positions.set(nucleus.node_id,{x:0,y:0,z:0});assignments.set(nucleus.node_id,{group:nodeGroup,local:new THREE.Vector3(0,0,0)})}
+    const shells=[...new Set(d.nodes.filter(n=>!n.is_nucleus).map(n=>n.orbital_shell))];
+    shells.forEach((shell,shellIndex)=>{
+      const siblings=d.nodes.filter(n=>!n.is_nucleus&&n.orbital_shell===shell);
+      const radius=30+(shell-1)*26;
+      const ringCount=Math.min(3,Math.max(1,siblings.length));
+      const speed=(shellIndex%2===0?1:-1)*0.0015*(1+shellIndex*0.4);
+      const spinGroups=[];
+      for(let r=0;r<ringCount;r++){
+        const tiltGroup=new THREE.Group();
+        const qTilt=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),THREE.MathUtils.degToRad(58));
+        const qSpread=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.degToRad(r*(180/ringCount)));
+        tiltGroup.quaternion.copy(qSpread.multiply(qTilt));
+        const spinGroup=new THREE.Group();
+        tiltGroup.add(spinGroup);
+        shellGroup.add(tiltGroup);
+        const segments=64,circlePoints=[];
+        for(let s=0;s<=segments;s++){const t=(s/segments)*Math.PI*2;circlePoints.push(new THREE.Vector3(Math.cos(t)*radius,0,Math.sin(t)*radius))}
+        const ringLine=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(circlePoints),new THREE.LineBasicMaterial({color:0x3f5f5c,transparent:true,opacity:0.55}));
+        spinGroup.add(ringLine);
+        spinGroups.push({tiltGroup,spinGroup});
+        shellRigs.push({group:spinGroup,speed});
+      }
+      siblings.forEach((n,i)=>{
+        const ringIndex=i%ringCount;
+        const ringSiblingsCount=siblings.filter((_,idx)=>idx%ringCount===ringIndex).length;
+        const ringSiblingIndex=Math.floor(i/ringCount);
+        const angle=(ringSiblingIndex/Math.max(ringSiblingsCount,1))*Math.PI*2;
+        const local=new THREE.Vector3(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
+        const {tiltGroup,spinGroup}=spinGroups[ringIndex];
+        const world=local.clone().applyQuaternion(tiltGroup.quaternion);
+        positions.set(n.node_id,{x:world.x,y:world.y,z:world.z});
+        assignments.set(n.node_id,{group:spinGroup,local});
+      });
+    });
+    d.links.forEach(link=>{
+      const s=positions.get(link.source_id),t=positions.get(link.target_id);
+      if(!s||!t)return;
+      const geometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(s.x,s.y,s.z),new THREE.Vector3(t.x,t.y,t.z)]);
+      const material=new THREE.LineBasicMaterial({color:0x58c4b2,transparent:true,opacity:Math.max(.15,link.strength)});
+      linkGroup.add(new THREE.Line(geometry,material));
+    });
+    d.nodes.forEach(n=>{
+      const assignment=assignments.get(n.node_id);
+      if(!assignment)return;
+      const radius=n.is_nucleus?11:3+n.utility*6;
+      const red=Math.round(234-(n.momentum*90)),green=Math.round(118+(n.momentum*80));
+      const color=n.is_nucleus?new THREE.Color(0xea765c):new THREE.Color(`rgb(${red},${green},${n.momentum>.4?170:84})`);
+      const geometry=new THREE.SphereGeometry(radius,24,18);
+      const material=new THREE.MeshStandardMaterial({color,transparent:true,opacity:.45+n.utility*.55,emissive:n.is_nucleus?0x441a10:0x000000,roughness:0.4,metalness:0.1});
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.position.copy(assignment.local);
+      mesh.userData.node=n;
+      const label=makeLabel(n);
+      mesh.userData.label=label;
+      mesh.add(label);
+      assignment.group.add(mesh);
+      nodeMeshes.push(mesh);
+    });
+    if(!nucleus)detail.textContent='No nucleus record is stored.';
+  }catch(e){detail.textContent='Memory graph unavailable.'}
+}
+window.loadGraph3D=loadGraph3D;
+</script>
+</body></html>

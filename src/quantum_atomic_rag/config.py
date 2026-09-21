@@ -11,6 +11,7 @@ class RuntimeSettings(BaseSettings):
 
     vllm_endpoint_url: str = Field(default="http://127.0.0.1:8000/v1", min_length=1)
     vllm_model_name: str = "google/gemma-4-12B-it"
+    embedding_model_name: str = "nomic-embed-text:latest"
     memory_database_path: str = "data/atomic_memory.sqlite3"
     vllm_api_key: str | None = Field(default=None, repr=False)
     enable_thinking: bool = False

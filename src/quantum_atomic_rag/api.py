@@ -12,9 +12,11 @@ from fastapi.responses import FileResponse
 
 from .client import Gemma4VLLMClient
 from .config import RuntimeSettings
+from .errors import QuantumAtomicRAGError
 from .memory import KnowledgeStore
 from .orchestrator import SwarmOrchestrator
-from .schemas import UniversalAgentPayload
+from .prompts import SYSTEM_PROMPTS
+from .schemas import HarmonizerOutput, UniversalAgentPayload
 
 _STATIC_INDEX = Path(__file__).with_name("static") / "index.html"
 
@@ -65,15 +67,21 @@ async def analyze(payload: UniversalAgentPayload, request: Request) -> dict[str,
 @app.post("/api/knowledge")
 async def add_knowledge(request: Request) -> dict[str, Any]:
     memory = cast(KnowledgeStore, request.app.state.memory)
+    client = cast(Gemma4VLLMClient, request.app.state.client)
     body = await request.json()
     content = body.get("content", "")
     if not isinstance(content, str) or not content.strip():
         raise HTTPException(status_code=422, detail="content is required")
     try:
+        try:
+            embedding = await client.generate_embedding(content)
+        except QuantumAtomicRAGError:
+            embedding = None
         node = memory.ingest(
             content,
             source=str(body.get("source", "manual")),
             metadata=body.get("metadata") if isinstance(body.get("metadata"), dict) else {},
+            embedding=embedding,
         )
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
@@ -112,24 +120,60 @@ async def upload_knowledge(
     if not content:
         raise HTTPException(status_code=422, detail="uploaded source contains no extractable text")
     memory = cast(KnowledgeStore, request.app.state.memory)
-    node = memory.ingest(content, source=filename, metadata={"filename": filename, "content_type": file.content_type})
+    client = cast(Gemma4VLLMClient, request.app.state.client)
+    try:
+        embedding = await client.generate_embedding(content)
+    except QuantumAtomicRAGError:
+        embedding = None
+    node = memory.ingest(
+        content,
+        source=filename,
+        metadata={"filename": filename, "content_type": file.content_type},
+        embedding=embedding,
+    )
     return {"node": node.model_dump(mode="json"), "filename": filename, "total_nodes": memory.count()}
 
 
 @app.post("/api/query")
 async def query_memory(request: Request) -> dict[str, Any]:
     memory = cast(KnowledgeStore, request.app.state.memory)
+    client = cast(Gemma4VLLMClient, request.app.state.client)
     body = await request.json()
     query = body.get("query", "")
     if not isinstance(query, str) or not query.strip():
         raise HTTPException(status_code=422, detail="query is required")
-    return memory.search(query).model_dump(mode="json")
+    try:
+        query_embedding = await client.generate_embedding(query)
+    except QuantumAtomicRAGError:
+        query_embedding = None
+    retrieval = memory.search(query, embedding=query_embedding)
+    answer: dict[str, Any] | None = None
+    if retrieval.retrieved_nodes:
+        context = "\n\n".join(
+            f"[{node.node_id}] shell={node.orbital_shell} utility={node.utility}: {node.content}"
+            for node in retrieval.retrieved_nodes
+        )
+        try:
+            harmonized = await client.generate_structured_response(
+                SYSTEM_PROMPTS["harmonizer_agent"],
+                f"Question: {query}\nRetrieved context:\n{context}",
+                HarmonizerOutput,
+            )
+            answer = harmonized.model_dump(mode="json")
+        except QuantumAtomicRAGError:
+            answer = {"answer": "Retrieved context is available, but the Harmonizer model was unavailable.", "confidence": 0.0, "cited_node_ids": []}
+    result = retrieval.model_dump(mode="json")
+    result["answer"] = answer
+    result["metrics"] = memory.metrics().model_dump(mode="json")
+    return result
 
 
 @app.get("/api/memory/graph")
 async def memory_graph(request: Request) -> dict[str, Any]:
     memory = cast(KnowledgeStore, request.app.state.memory)
-    return cast(dict[str, Any], memory.graph())
+    graph = cast(dict[str, Any], memory.graph())
+    graph["metrics"] = memory.metrics().model_dump(mode="json")
+    return graph
 
 
 @app.get("/", include_in_schema=False)
